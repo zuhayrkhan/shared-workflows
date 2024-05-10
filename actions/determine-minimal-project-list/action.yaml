@@ -1,0 +1,57 @@
+name: Determine minimal project list
+description: Determine the minimal project list with only those modules required based on changes
+
+inputs:
+  changed_files:
+    description: A space-delimited list of the files that were changed
+    required: true
+
+outputs:
+  project_list:
+    description: A comma-delimited list of the projects that need to be rebuilt
+    value: ${{ steps.create-project-list.outputs.project_list }}
+
+runs:
+  using: composite
+  steps:
+
+    - id: determine-changed-files
+      name: Determine changed files
+      shell: bash
+      run: |
+        echo "Starting: determine_changed_files.sh - changed_files='${{ inputs.changed_files }}'"
+        source $GITHUB_ACTION_PATH/determine_changed_files.sh \
+        "${{ inputs.changed_files }}"
+        echo "Finished: determine_changed_files.sh in $SECONDS seconds"
+
+    - id: generate-dependency-map-file
+      name: Generate dependency map file
+      shell: bash
+      run: |
+        SECONDS=0
+        echo "Starting: generate_dependency_map_file.sh"
+        source $GITHUB_ACTION_PATH/generate_dependency_map_file.sh
+        echo "Finished: generate_dependency_map_file.sh in $SECONDS seconds"
+
+    - id: generate-maven-map-file
+      if: false
+      name: Generate maven map file
+      shell: bash
+      run: |
+        echo "Starting: generate_maven_map_file.sh"
+        source $GITHUB_ACTION_PATH/generate_maven_map_file.sh
+        echo "Finished: generate_maven_map_file.sh in $SECONDS seconds"
+
+    - id: create-project-list
+      name: Create project list
+      shell: bash
+      run: |
+        echo "Starting: create_project_list.sh"
+        echo "maven-map.txt:"
+        cat ${RUNNER_TEMP}/maven-map.txt
+        echo "dependency-map.txt:"
+        cat ${RUNNER_TEMP}/dependency-map.txt
+        echo "affected_modules.txt:"
+        cat ${RUNNER_TEMP}/affected_modules.txt
+        source $GITHUB_ACTION_PATH/create_project_list.sh
+        echo "Finished: create_project_list.sh in $SECONDS seconds"
