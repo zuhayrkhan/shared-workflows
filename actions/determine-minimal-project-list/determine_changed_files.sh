@@ -2,7 +2,7 @@
 
 IFS=$'\n'
 module_paths=($(find . -name "pom.xml" | sed 's|/[^/]*$||' | sed 's| $||' | awk '{ printf "%d %s/\n", length, $0 }' | sort -nr | cut -d" " -f2-))
-echo "module_paths in this repo: ${module_paths[@]}"
+echo "module_paths in this repo: ${module_paths[@]}" >&2
 
 # Output file for dependencies
 output_file="${RUNNER_TEMP}/affected_modules.txt"
@@ -10,9 +10,8 @@ output_file="${RUNNER_TEMP}/affected_modules.txt"
 # Clear previous map
 > $output_file
 
-git fetch origin master
 changed_files=$1
-echo "Changed files: $changed_files"
+echo "Changed files: $changed_files" >&2
 
 IFS=' '
 for file in $changed_files; do
@@ -22,7 +21,7 @@ for file in $changed_files; do
         if [[ "$module_path" != "./" ]]; then
           match_regex="^${module_path//\//\\/}"
           if [[ "$prefixed_file" =~ $match_regex ]]; then
-              echo "$module_path" >> "$output_file"
+              echo "$module_path" | tee -a "$output_file"
               break # Break after the first match to avoid checking less specific paths
           fi
         fi

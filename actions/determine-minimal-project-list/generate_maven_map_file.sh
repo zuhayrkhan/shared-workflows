@@ -16,6 +16,6 @@ for module in $(find . -name "pom.xml" -exec dirname {} \; | sed 's|^\./||'); do
   version=$(mvn -f "$pomPath" help:evaluate -Dexpression=project.version -q -DforceStdout)
 
   # Output them in a single line
-  echo "$module/|$groupId:$artifactId:$version" >> "$output_file"
+  echo "$module/|$groupId:$artifactId:$version" | tee -a "$output_file"
 
 done

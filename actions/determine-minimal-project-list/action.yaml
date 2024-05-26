@@ -33,15 +33,6 @@ runs:
         source $GITHUB_ACTION_PATH/generate_dependency_map_file.sh
         echo "Finished: generate_dependency_map_file.sh in $SECONDS seconds"
 
-    - id: generate-maven-map-file
-      if: false
-      name: Generate maven map file
-      shell: bash
-      run: |
-        echo "Starting: generate_maven_map_file.sh"
-        source $GITHUB_ACTION_PATH/generate_maven_map_file.sh
-        echo "Finished: generate_maven_map_file.sh in $SECONDS seconds"
-
     - id: create-project-list
       name: Create project list
       shell: bash

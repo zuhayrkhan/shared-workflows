@@ -36,8 +36,17 @@ done < ${RUNNER_TEMP}/dependency-map.txt
 declare -A affected_modules_map
 while IFS= read -r affected_module; do
   affected_module_escaped=$(escape "$affected_module" )
+
+  echo "affected_module_escaped:$affected_module_escaped"
+
   affected_module_GAV_escaped=${folder_to_maven_map[$affected_module_escaped]}
+
+  echo "affected_module_GAV_escaped:$affected_module_GAV_escaped"
+
   affected_module_GAV_escaped="${affected_module_GAV_escaped% }"
+
+    echo "affected_module_GAV_escaped:$affected_module_GAV_escaped"
+
     if [[ -v dependency_map[$affected_module_GAV_escaped] && ${dependency_map[$affected_module_GAV_escaped]} ]]; then
       for dependent in ${dependency_map[$affected_module_GAV_escaped]}; do
         dependent_escaped=$(escape "$dependent")
