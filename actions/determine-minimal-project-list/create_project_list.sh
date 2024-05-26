@@ -50,7 +50,9 @@ while IFS= read -r affected_module; do
         affected_modules_map["$dependent_escaped"]=$dependent_escaped
       done
     else
-      affected_modules_map["$affected_module_GAV_escaped"]=$affected_module_GAV_escaped
+      if [[ -n "$affected_module_GAV_escaped" ]]; then
+            affected_modules_map["$affected_module_GAV_escaped"]=$affected_module_GAV_escaped
+      fi
     fi
 done < ${RUNNER_TEMP}/affected_modules.txt
 
