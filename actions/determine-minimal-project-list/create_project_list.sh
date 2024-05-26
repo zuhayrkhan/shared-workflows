@@ -44,9 +44,6 @@ while IFS= read -r affected_module; do
   echo "affected_module_GAV_escaped:$affected_module_GAV_escaped"
 
   affected_module_GAV_escaped="${affected_module_GAV_escaped% }"
-
-    echo "affected_module_GAV_escaped:$affected_module_GAV_escaped"
-
     if [[ -v dependency_map[$affected_module_GAV_escaped] && ${dependency_map[$affected_module_GAV_escaped]} ]]; then
       for dependent in ${dependency_map[$affected_module_GAV_escaped]}; do
         dependent_escaped=$(escape "$dependent")
