@@ -6,6 +6,8 @@ trim() {
   echo "$trimmed"
 }
 
+declare -A maven_to_folder_map
+
 # Output file for dependencies
 dependency_map_output_file="${RUNNER_TEMP}/dependency-map.txt"
 maven_map_output_file="${RUNNER_TEMP}/maven-map.txt"
@@ -16,7 +18,7 @@ maven_map_output_file="${RUNNER_TEMP}/maven-map.txt"
 
 # List all modules (assuming each subfolder with a pom.xml is a module)
 for module in $(find . -name "pom.xml" -exec dirname {} \;); do
-  echo "Processing dir: $module"
+#  echo "Processing dir: $module"
   cd $module
 
   unset current_module_GAV
@@ -28,9 +30,12 @@ for module in $(find . -name "pom.xml" -exec dirname {} \;); do
       dependency_module=$(trim "${BASH_REMATCH[2]}")
       if [[ ! -z "${current_module_GAV}" ]]; then
         echo "$module/|$current_module_GAV" >> "$maven_map_output_file"
+        maven_to_folder_map["$current_module_GAV"]+="$module "  # Append maven to folder mapping
       fi
       if [[ "$dependency_module" == *-SNAPSHOT ]]; then
-        echo "$dependent_module|$dependency_module" >> "$dependency_map_output_file"
+        dependent_module_folder=${maven_to_folder_map[$dependent_module]}
+        dependency_module_folder=${maven_to_folder_map[$dependency_module]}
+        echo "$dependent_module($dependent_module_folder)|$dependency_module($dependency_module_folder)" >> "$dependency_map_output_file"
       fi
     elif [[ $line =~ digraph[[:space:]]+\"([^:]+):([^:]+):jar:([^:]+)\" ]]; then
       current_module_groupId=$(trim "${BASH_REMATCH[1]}")
@@ -38,6 +43,7 @@ for module in $(find . -name "pom.xml" -exec dirname {} \;); do
       current_module_version=$(trim "${BASH_REMATCH[3]}")
       if [[ "$module" =~ .*$current_module_artifactId$ ]]; then
         current_module_GAV="$current_module_groupId:$current_module_artifactId:$current_module_version"
+        echo "$module/|$current_module_GAV" >> "$maven_map_output_file"
       fi
     fi
   done
