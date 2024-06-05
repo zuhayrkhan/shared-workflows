@@ -23,12 +23,9 @@ for module in $(find . -name "pom.xml" -exec dirname {} \;); do
 
   # Use grep to find SNAPSHOT dependencies
   mvn dependency:tree -DoutputType=dot -o | while IFS= read -r line; do
-#    echo "line:$line"
     if [[ $line =~ \"([^\"]+)\"[^\"]*\"([^\"]+)\" ]]; then
       dependent_module=$(trim "${BASH_REMATCH[1]}")
       dependency_module=$(trim "${BASH_REMATCH[2]}")
-#      echo "dependent_module:$dependent_module"
-#      echo "dependency_module:$dependency_module"
       if [[ ! -z "${current_module_GAV}" ]]; then
         echo "$module/|$current_module_GAV" >> "$maven_map_output_file"
       fi
@@ -39,7 +36,6 @@ for module in $(find . -name "pom.xml" -exec dirname {} \;); do
       current_module_groupId=$(trim "${BASH_REMATCH[1]}")
       current_module_artifactId=$(trim "${BASH_REMATCH[2]}")
       current_module_version=$(trim "${BASH_REMATCH[3]}")
-#      echo "current_module: $current_module_groupId:$current_module_artifactId:$current_module_version"
       if [[ "$module" =~ .*$current_module_artifactId$ ]]; then
         current_module_GAV="$current_module_groupId:$current_module_artifactId:$current_module_version"
       fi
