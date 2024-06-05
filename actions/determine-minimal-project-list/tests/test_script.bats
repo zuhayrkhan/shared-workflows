@@ -21,9 +21,12 @@ EOF
   run bash "$BATS_TEST_DIRNAME/../generate_dependency_map_file.sh"
   [ "$status" -eq 0 ]
   expected=$(cat << EOF
-module_paths in this repo: ./services/service-b/ ./services/service-a/ ./shared/shared-c/ ./shared/shared-b/ ./shared/shared-a/ ./services/ ./shared/ ./
-Changed files: shared/shared-a/dummy.java
-./shared/shared-a/
+com.zuhayrkhan.example.services:service-a:1.0.0-SNAPSHOT(./services/service-a)|com.zuhayrkhan.example.shared:shared-a:1.0.0-SNAPSHOT(./shared/shared-a)
+com.zuhayrkhan.example.services:service-a:1.0.0-SNAPSHOT(./services/service-a)|com.zuhayrkhan.example.shared:shared-c:1.0.0-SNAPSHOT(./shared/shared-c)
+com.zuhayrkhan.example.services:service-a:1.0.0-SNAPSHOT(./services/service-a)|com.zuhayrkhan.example.shared:shared-a:1.0.0-SNAPSHOT(./shared/shared-a)
+com.zuhayrkhan.example.services:service-a:1.0.0-SNAPSHOT(./services/service-a)|com.zuhayrkhan.example.shared:shared-c:1.0.0-SNAPSHOT(./shared/shared-c)
+com.zuhayrkhan.example.services:service-b:1.0.0-SNAPSHOT(./services/service-b)|com.zuhayrkhan.example.shared:shared-b:1.0.0-SNAPSHOT(./shared/shared-b)
+com.zuhayrkhan.example.services:service-b:1.0.0-SNAPSHOT(./services/service-b)|com.zuhayrkhan.example.shared:shared-c:1.0.0-SNAPSHOT(./shared/shared-c)
 EOF
 )
   [ "$output" = "$expected" ]
