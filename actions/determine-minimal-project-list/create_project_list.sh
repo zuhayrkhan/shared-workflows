@@ -1,16 +1,10 @@
 #!/usr/local/bin/bash
 
-escape() {
-    local unescaped=$1
-    escaped=$(echo "$unescaped" | sed -e 's!\/!_SEP_!g' -e 's!\.!_DOT_!g' -e 's!:!_COLON_!g')
-    echo "$escaped"
-}
+# get directory of current script
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
-unescape() {
-    local escaped=$1
-    unescaped=$(echo "$escaped" | sed -e 's!_SEP_!/!g' -e 's!_DOT_!.!g' -e 's!_COLON_!:!g')
-    echo "$unescaped"
-}
+# source the utility functions script
+source "$SCRIPT_DIR/utility.sh"
 
 # Load the maven map
 declare -A maven_to_folder_map

@@ -1,10 +1,10 @@
-#!/bin/bash
+#!/usr/local/bin/bash
 
-trim() {
-  local all_detail=$1
-  trimmed=$(echo "$all_detail" | sed -e 's/:compile$//g' -e 's/:test$//g' -e 's/:jar//g')
-  echo "$trimmed"
-}
+# get directory of current script
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+# source the utility functions script
+source "$SCRIPT_DIR/utility.sh"
 
 declare -A maven_to_folder_map
 
@@ -21,32 +21,44 @@ for module in $(find . -name "pom.xml" -exec dirname {} \;); do
 #  echo "Processing dir: $module"
   cd $module
 
-  unset current_module_GAV
-
   # Use grep to find SNAPSHOT dependencies
-  mvn dependency:tree -DoutputType=dot -o | while IFS= read -r line; do
-    if [[ $line =~ \"([^\"]+)\"[^\"]*\"([^\"]+)\" ]]; then
-      dependent_module=$(trim "${BASH_REMATCH[1]}")
-      dependency_module=$(trim "${BASH_REMATCH[2]}")
-      if [[ ! -z "${current_module_GAV}" ]]; then
-        echo "$module/|$current_module_GAV" >> "$maven_map_output_file"
-        maven_to_folder_map["$current_module_GAV"]+="$module "  # Append maven to folder mapping
-      fi
-      if [[ "$dependency_module" == *-SNAPSHOT ]]; then
-        dependent_module_folder=${maven_to_folder_map[$dependent_module]}
-        dependency_module_folder=${maven_to_folder_map[$dependency_module]}
-        echo "$dependent_module($dependent_module_folder)|$dependency_module($dependency_module_folder)" >> "$dependency_map_output_file"
-      fi
-    elif [[ $line =~ digraph[[:space:]]+\"([^:]+):([^:]+):jar:([^:]+)\" ]]; then
+  while IFS= read -r line; do
+    if [[ $line =~ digraph[[:space:]]+\"([^:]+):([^:]+):jar:([^:]+)\" ]]; then
       current_module_groupId=$(trim "${BASH_REMATCH[1]}")
       current_module_artifactId=$(trim "${BASH_REMATCH[2]}")
       current_module_version=$(trim "${BASH_REMATCH[3]}")
+      echo "seen current_module=$current_module_groupId:$current_module_artifactId:$current_module_version for:$module"
+      current_module_GAV="$current_module_groupId:$current_module_artifactId:$current_module_version"
+      echo "checking '$module' ends with '$current_module_artifactId'"
       if [[ "$module" =~ .*$current_module_artifactId$ ]]; then
-        current_module_GAV="$current_module_groupId:$current_module_artifactId:$current_module_version"
+        echo "will capture '$module' against '$current_module_GAV'"
+        echo "adding to maven_to_folder_map[$current_module_GAV]=$module"
+        maven_to_folder_map[$current_module_GAV]="$module"  # Append maven to folder mapping
         echo "$module/|$current_module_GAV" >> "$maven_map_output_file"
       fi
+    elif [[ $line =~ \"([^\"]+)\"[^\"]*\"([^\"]+)\" ]]; then
+      dependent_module=$(trim "${BASH_REMATCH[1]}")
+      dependency_module=$(trim "${BASH_REMATCH[2]}")
+      if [[ ! -z "${current_module_GAV}" ]]; then
+        echo "checking '$module' ends with '$current_module_artifactId'"
+        if [[ "$module" =~ .*$current_module_artifactId$ ]]; then
+          echo "will capture '$module' against '$current_module_GAV'"
+          echo "$module/|$current_module_GAV" >> "$maven_map_output_file"
+          echo "adding to maven_to_folder_map[$current_module_GAV]=$module"
+          maven_to_folder_map[$current_module_GAV]="$module"  # Append maven to folder mapping
+        fi
+      fi
+      if [[ "$dependency_module" == *-SNAPSHOT ]]; then
+        dependent_module_folder=${maven_to_folder_map[$dependent_module]}
+        echo "(1)got from maven_to_folder_map value for:$dependent_module='$dependent_module_folder'"
+        dependency_module_folder=${maven_to_folder_map[$dependency_module]}
+        echo "(2)got from maven_to_folder_map value for:$dependency_module='$dependency_module_folder'"
+        if [[ ! -z  "${dependent_module_folder}" && ! -z "${dependency_module_folder}" ]]; then
+          echo "$dependent_module($dependent_module_folder)|$dependency_module($dependency_module_folder)" >> "$dependency_map_output_file"
+        fi
+      fi
     fi
-  done
+  done < <(mvn dependency:tree -DoutputType=dot -o)
 
   cd - > /dev/null
 done
