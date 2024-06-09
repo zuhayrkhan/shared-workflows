@@ -6,6 +6,15 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 # source the utility functions script
 source "$SCRIPT_DIR/utility.sh"
 
+source "$SCRIPT_DIR/determine_changed_files.sh"
+#source "$SCRIPT_DIR/generate_dependency_map_file.sh"
+
+while IFS= read -r line; do
+  echo "line:$line"
+done < $(determine_changed_files "$@")
+
+exit 0;
+
 # Load the maven map
 declare -A maven_to_folder_map
 declare -A folder_to_maven_map
