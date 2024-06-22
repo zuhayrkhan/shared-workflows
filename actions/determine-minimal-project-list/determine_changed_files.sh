@@ -30,4 +30,4 @@ determine_changed_files() {
 
 }
 
-determine_changed_files "$@";
+#determine_changed_files "$@";

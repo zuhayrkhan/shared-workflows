@@ -6,12 +6,45 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 # source the utility functions script
 source "$SCRIPT_DIR/utility.sh"
 
-source "$SCRIPT_DIR/determine_changed_files.sh"
-#source "$SCRIPT_DIR/generate_dependency_map_file.sh"
+source "$SCRIPT_DIR/generate_dependency_map_file.sh"
 
+declare -A maven_to_folder_map
+declare -A folder_to_maven_map
 while IFS= read -r line; do
-  echo "line:$line"
-done < $(determine_changed_files "$@")
+    IFS="|" read -r folder mavenGAV <<< $line
+    mavenGAV_escaped=$(escape "$mavenGAV" )
+    echo "mavenGAV:$mavenGAV"
+    folder_escaped=$(escape "$folder" )
+    echo "folder:$folder"
+    maven_to_folder_map["$mavenGAV_escaped"]+="$folder_escaped "  # Append dependents
+    folder_to_maven_map["$folder_escaped"]+="$mavenGAV_escaped "  # Append dependents
+done < <(generate_dependency_map)
+
+source "$SCRIPT_DIR/determine_changed_files.sh"
+
+while IFS= read -r affected_module; do
+
+  affected_module_escaped=$(escape "$affected_module" )
+
+  echo "affected_module_escaped:$affected_module_escaped"
+
+  affected_module_GAV_escaped=${folder_to_maven_map[$affected_module_escaped]}
+
+  echo "affected_module_GAV_escaped:$affected_module_GAV_escaped"
+
+  affected_module_GAV_escaped="${affected_module_GAV_escaped% }"
+    if [[ -v dependency_map[$affected_module_GAV_escaped] && ${dependency_map[$affected_module_GAV_escaped]} ]]; then
+      for dependent in ${dependency_map[$affected_module_GAV_escaped]}; do
+        dependent_escaped=$(escape "$dependent")
+        affected_modules_map["$dependent_escaped"]=$dependent_escaped
+      done
+    else
+      if [[ -n "$affected_module_GAV_escaped" ]]; then
+            affected_modules_map["$affected_module_GAV_escaped"]=$affected_module_GAV_escaped
+      fi
+    fi
+
+done < <(determine_changed_files "$@")
 
 exit 0;
 

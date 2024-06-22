@@ -6,7 +6,8 @@ setup() {
 }
 
 @test "affected_modules will include entries for all pom.xml files" {
-  run bash "$BATS_TEST_DIRNAME/../determine_changed_files.sh" shared/shared-a/dummy.java
+  . "$BATS_TEST_DIRNAME/../determine_changed_files.sh"
+  run bash -c 'determine_changed_files shared/shared-a/dummy.java'
   [ "$status" -eq 0 ]
   expected=$(cat << EOF
 ./shared/shared-a/
