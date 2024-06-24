@@ -6,8 +6,8 @@ setup() {
 }
 
 @test "affected_modules will include entries for all pom.xml files" {
-  . "$BATS_TEST_DIRNAME/../determine_changed_files.sh"
-  run bash -c 'determine_changed_files shared/shared-a/dummy.java'
+  source "$BATS_TEST_DIRNAME/../determine_changed_files.sh"
+  run determine_changed_files shared/shared-a/dummy.java
   [ "$status" -eq 0 ]
   expected=$(cat << EOF
 ./shared/shared-a/
@@ -17,7 +17,8 @@ EOF
 }
 
 @test "dependency-map and maven-map will include entries for all pom.xml files" {
-  run bash "$BATS_TEST_DIRNAME/../generate_dependency_map_file.sh"
+  source "$BATS_TEST_DIRNAME/../generate_dependency_map_file.sh"
+  run generate_dependency_map
   [ "$status" -eq 0 ]
   expected=$(cat << EOF
 com.zuhayrkhan.example.services:service-a:1.0.0-SNAPSHOT(./services/service-a/)|com.zuhayrkhan.example.shared:shared-a:1.0.0-SNAPSHOT(./shared/shared-a/)
