@@ -42,7 +42,7 @@ runs:
         source $GITHUB_ACTION_PATH/generate_dependency_map.sh
         echo "Finished: generate_dependency_map.sh in $SECONDS seconds"
 
-    - id: create-project-list
+    - id: old-create-project-list
       name: Create project list
       shell: bash
       run: |
