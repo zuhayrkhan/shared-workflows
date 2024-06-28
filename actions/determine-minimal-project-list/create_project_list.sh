@@ -25,14 +25,14 @@ process_module_and_dir(){
     maven_to_folder_map["$mavenGAV_escaped"]="$folder_escaped "
     folder_to_maven_map["$folder_escaped"]="$mavenGAV_escaped "
 
-    echo $mavenGAV_escaped $folder_escaped
+    echo "$mavenGAV_escaped" "$folder_escaped"
 
 }
 
 generate_and_handle_dependency_map() {
 
     while IFS= read -r line; do
-        IFS="|" read -r dependent dependency <<< $line
+        IFS="|" read -r dependent dependency <<< "$line"
 
         read -r mavenGAV_escaped folder_escaped <<< "$(process_module_and_dir "$dependent")"
         dependent_module_escaped=$mavenGAV_escaped
@@ -62,6 +62,7 @@ process_affected_module(){
     affected_module_escaped=$(escape "$affected_module" )
     local affected_module_GAV_escaped=${folder_to_maven_map[$affected_module_escaped]}
     affected_module_GAV_escaped="${affected_module_GAV_escaped% }"
+    # shellcheck disable=SC2102
     if [[ -v dependency_map[$affected_module_GAV_escaped] && ${dependency_map[$affected_module_GAV_escaped]} ]]; then
         for dependent in ${dependency_map[$affected_module_GAV_escaped]}; do
             dependent_escaped=$(escape "$dependent")
