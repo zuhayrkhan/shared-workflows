@@ -37,7 +37,7 @@ EOF
   run bash "$BATS_TEST_DIRNAME/../create_project_list.sh" shared/shared-a/dummy.java
   [ "$status" -eq 0 ]
   expected=$(cat << EOF
-project_list=./services/service-b/,,./services/service-a/,
+project_list=./services/service-b/,./services/service-a/
 EOF
 )
   [ "$output" = "$expected" ]

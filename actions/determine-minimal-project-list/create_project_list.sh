@@ -88,7 +88,7 @@ list_affected_projects(){
     for affected_module in "${affected_modules_map[@]}"; do
         local affected_folder=${maven_to_folder_map[$affected_module]}
         local affected_folder_unescaped
-        affected_folder_unescaped=$(unescape "$affected_folder")
+        affected_folder_unescaped=$(trim "$(unescape "$affected_folder")")
         project_list["$affected_folder_unescaped"]=$affected_folder_unescaped
     done
 
