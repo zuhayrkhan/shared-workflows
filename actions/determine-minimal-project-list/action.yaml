@@ -23,35 +23,3 @@ runs:
         source $GITHUB_ACTION_PATH/create_project_list.sh
         create_project_list ${{ inputs.changed_files }} 
         echo "Finished: create_project_list.sh in $SECONDS seconds"
-
-    - id: determine-changed-files
-      name: Determine changed files
-      shell: bash
-      run: |
-        echo "Starting: determine_changed_files.sh - changed_files='${{ inputs.changed_files }}'"
-        source $GITHUB_ACTION_PATH/determine_changed_files.sh \
-        "${{ inputs.changed_files }}"
-        echo "Finished: determine_changed_files.sh in $SECONDS seconds"
-
-    - id: generate-dependency-map-file
-      name: Generate dependency map file
-      shell: bash
-      run: |
-        SECONDS=0
-        echo "Starting: generate_dependency_map.sh"
-        source $GITHUB_ACTION_PATH/generate_dependency_map.sh
-        echo "Finished: generate_dependency_map.sh in $SECONDS seconds"
-
-    - id: old-create-project-list
-      name: Create project list
-      shell: bash
-      run: |
-        echo "Starting: create_project_list.sh"
-        echo "maven-map.txt:"
-        cat ${RUNNER_TEMP}/maven-map.txt
-        echo "dependency-map.txt:"
-        cat ${RUNNER_TEMP}/dependency-map.txt
-        echo "affected_modules.txt:"
-        cat ${RUNNER_TEMP}/affected_modules.txt
-        source $GITHUB_ACTION_PATH/create_project_list.sh
-        echo "Finished: create_project_list.sh in $SECONDS seconds"
