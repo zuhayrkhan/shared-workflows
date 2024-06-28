@@ -17,7 +17,7 @@ EOF
 }
 
 @test "dependency-map and maven-map will include entries for all pom.xml files" {
-  source "$BATS_TEST_DIRNAME/../generate_dependency_map_file.sh"
+  source "$BATS_TEST_DIRNAME/../generate_dependency_map.sh"
   run generate_dependency_map
   [ "$status" -eq 0 ]
   expected=$(cat << EOF
@@ -37,7 +37,7 @@ EOF
   run bash "$BATS_TEST_DIRNAME/../create_project_list.sh" shared/shared-a/dummy.java
   [ "$status" -eq 0 ]
   expected=$(cat << EOF
-services/service-a,shared/shared-a,
+project_list=./services/service-b/,,./services/service-a/,
 EOF
 )
   [ "$output" = "$expected" ]

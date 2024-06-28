@@ -29,9 +29,9 @@ runs:
       shell: bash
       run: |
         SECONDS=0
-        echo "Starting: generate_dependency_map_file.sh"
-        source $GITHUB_ACTION_PATH/generate_dependency_map_file.sh
-        echo "Finished: generate_dependency_map_file.sh in $SECONDS seconds"
+        echo "Starting: generate_dependency_map.sh"
+        source $GITHUB_ACTION_PATH/generate_dependency_map.sh
+        echo "Finished: generate_dependency_map.sh in $SECONDS seconds"
 
     - id: create-project-list
       name: Create project list
