@@ -8,97 +8,127 @@ source "$SCRIPT_DIR/utility.sh"
 
 source "$SCRIPT_DIR/generate_dependency_map_file.sh"
 
-declare -A maven_to_folder_map
-declare -A folder_to_maven_map
-while IFS= read -r line; do
-    IFS="|" read -r folder mavenGAV <<< $line
-    mavenGAV_escaped=$(escape "$mavenGAV" )
-    echo "mavenGAV:$mavenGAV"
-    folder_escaped=$(escape "$folder" )
-    echo "folder:$folder"
-    maven_to_folder_map["$mavenGAV_escaped"]+="$folder_escaped "  # Append dependents
-    folder_to_maven_map["$folder_escaped"]+="$mavenGAV_escaped "  # Append dependents
-done < <(generate_dependency_map)
+declare -gA maven_to_folder_map
+declare -gA folder_to_maven_map
+declare -gA affected_modules_map
+declare -gA project_list
+
+process_module_and_dir(){
+
+  local mavenGAV_and_dir="$1"
+
+  IFS="(" read -r mavenGAV dir <<< "$mavenGAV_and_dir"
+  folder=${dir%)*}
+
+  mavenGAV_escaped=$(escape "$mavenGAV" )
+  folder_escaped=$(escape "$folder" )
+  maven_to_folder_map["$mavenGAV_escaped"]="$folder_escaped "
+  folder_to_maven_map["$folder_escaped"]="$mavenGAV_escaped "
+
+#  echo "folder_to_maven_map:"
+#  for key in "${!folder_to_maven_map[@]}"; do
+#      echo "Key: $key"
+#      echo "Value: ${folder_to_maven_map[$key]}"
+#  done
+
+  echo $mavenGAV_escaped $folder_escaped
+
+}
+
+handle_dependency_map() {
+    while IFS= read -r line; do
+        IFS="|" read -r dependent dependency <<< $line
+
+        read -r mavenGAV_escaped folder_escaped <<< $(process_module_and_dir $dependent)
+        dependent_module_escaped=$mavenGAV_escaped
+
+        maven_to_folder_map["$mavenGAV_escaped"]="$folder_escaped "
+        folder_to_maven_map["$folder_escaped"]="$mavenGAV_escaped "
+
+        read -r mavenGAV_escaped folder_escaped <<< $(process_module_and_dir $dependency)
+        dependency_module_escaped=mavenGAV_escaped
+
+        maven_to_folder_map["$mavenGAV_escaped"]="$folder_escaped "
+        folder_to_maven_map["$folder_escaped"]="$mavenGAV_escaped "
+
+        dependency_map["$dependency_module_escaped"]+="$dependent_module_escaped "
+
+        echo "folder_to_maven_map:"
+        for key in "${!folder_to_maven_map[@]}"; do
+            echo "Key: $key"
+            echo "Value: ${folder_to_maven_map[$key]}"
+        done
+
+        echo "maven_to_folder_map:"
+        for key in "${!maven_to_folder_map[@]}"; do
+            echo "Key: $key"
+            echo "Value: ${maven_to_folder_map[$key]}"
+        done
+
+#        echo "updating dependency_map[$dependency_module_escaped] += $dependent_module_escaped"
+#        echo "now dependency_map[$dependency_module_escaped]=${dependency_map[$dependency_module_escaped]}"
+
+    done < <(generate_dependency_map)
+}
+
+legacy_handle_dependency_map(){
+    while IFS= read -r line; do
+        echo "line=$line"
+        IFS="|" read -r folder mavenGAV <<< $line
+        echo "folder=$folder"
+        echo "mavenGAV=$mavenGAV"
+        mavenGAV_escaped=$(escape "$mavenGAV" )
+        echo "mavenGAV_escaped=$mavenGAV_escaped"
+        folder_escaped=$(escape "$folder" )
+        echo "folder_escaped=$folder_escaped"
+        maven_to_folder_map["$mavenGAV_escaped"]+="$folder_escaped "
+        folder_to_maven_map["$folder_escaped"]+="$mavenGAV_escaped "
+    done < <(generate_dependency_map)
+}
 
 source "$SCRIPT_DIR/determine_changed_files.sh"
 
-while IFS= read -r affected_module; do
-
-  affected_module_escaped=$(escape "$affected_module" )
-
-  echo "affected_module_escaped:$affected_module_escaped"
-
-  affected_module_GAV_escaped=${folder_to_maven_map[$affected_module_escaped]}
-
-  echo "affected_module_GAV_escaped:$affected_module_GAV_escaped"
-
-  affected_module_GAV_escaped="${affected_module_GAV_escaped% }"
+process_affected_module(){
+    local affected_module="$1"
+    local affected_module_escaped=$(escape "$affected_module" )
+    echo "affected_module_escaped=$affected_module_escaped"
+    local affected_module_GAV_escaped=${folder_to_maven_map[$affected_module_escaped]}
+    affected_module_GAV_escaped="${affected_module_GAV_escaped% }"
+    echo "affected_module_GAV_escaped=$affected_module_GAV_escaped"
     if [[ -v dependency_map[$affected_module_GAV_escaped] && ${dependency_map[$affected_module_GAV_escaped]} ]]; then
-      for dependent in ${dependency_map[$affected_module_GAV_escaped]}; do
-        dependent_escaped=$(escape "$dependent")
-        affected_modules_map["$dependent_escaped"]=$dependent_escaped
-      done
+        for dependent in ${dependency_map[$affected_module_GAV_escaped]}; do
+            dependent_escaped=$(escape "$dependent")
+            affected_modules_map["$dependent_escaped"]=$dependent_escaped
+        done
     else
-      if [[ -n "$affected_module_GAV_escaped" ]]; then
+        if [[ -n "$affected_module_GAV_escaped" ]]; then
             affected_modules_map["$affected_module_GAV_escaped"]=$affected_module_GAV_escaped
-      fi
+        fi
     fi
+}
 
-done < <(determine_changed_files "$@")
+handle_changed_files(){
+    while IFS= read -r affected_module; do
+      echo "affected_module=$affected_module"
+      process_affected_module "$affected_module"
+    done < <(determine_changed_files "$@")
+}
 
-exit 0;
+list_affected_projects(){
+    for affected_module in ${affected_modules_map[@]}; do
+        echo "affected_module=$affected_module"
+        local affected_folder=${maven_to_folder_map[$affected_module]}
+        echo "affected_folder=$affected_folder"
+        local affected_folder_unescaped=$(unescape "$affected_folder")
+        echo "affected_folder_unescaped=$affected_folder_unescaped"
+        project_list["$affected_folder_unescaped"]=$affected_folder_unescaped
+    done
+    echo "project_list=$(echo ${project_list[@]} | sed 's|/./||g' | tr ' ' ',' )"
+    echo "project_list=$(echo ${project_list[@]} | sed 's|/./||g' | tr ' ' ',' )" >> $GITHUB_OUTPUT
+}
 
-# Load the maven map
-declare -A maven_to_folder_map
-declare -A folder_to_maven_map
-while IFS= read -r line; do
-    IFS="|" read -r folder mavenGAV <<< $line
-    mavenGAV_escaped=$(escape "$mavenGAV" )
-    folder_escaped=$(escape "$folder" )
-    maven_to_folder_map["$mavenGAV_escaped"]+="$folder_escaped "  # Append dependents
-    folder_to_maven_map["$folder_escaped"]+="$mavenGAV_escaped "  # Append dependents
-done < ${RUNNER_TEMP}/maven-map.txt
+handle_dependency_map
 
-# Load the dependency map
-declare -A dependency_map
-while IFS= read -r line; do
-    IFS="|" read -r dependent_module dependency_module <<< $line
-    dependent_module_escaped=$(escape "$dependent_module")
-    dependency_module_escaped=$(escape "$dependency_module")
-    dependency_map["$dependency_module_escaped"]+="$dependent_module_escaped "
-done < ${RUNNER_TEMP}/dependency-map.txt
+handle_changed_files "$@"
 
-# Load the affected modules list
-declare -A affected_modules_map
-while IFS= read -r affected_module; do
-  affected_module_escaped=$(escape "$affected_module" )
-
-  echo "affected_module_escaped:$affected_module_escaped"
-
-  affected_module_GAV_escaped=${folder_to_maven_map[$affected_module_escaped]}
-
-  echo "affected_module_GAV_escaped:$affected_module_GAV_escaped"
-
-  affected_module_GAV_escaped="${affected_module_GAV_escaped% }"
-    if [[ -v dependency_map[$affected_module_GAV_escaped] && ${dependency_map[$affected_module_GAV_escaped]} ]]; then
-      for dependent in ${dependency_map[$affected_module_GAV_escaped]}; do
-        dependent_escaped=$(escape "$dependent")
-        affected_modules_map["$dependent_escaped"]=$dependent_escaped
-      done
-    else
-      if [[ -n "$affected_module_GAV_escaped" ]]; then
-            affected_modules_map["$affected_module_GAV_escaped"]=$affected_module_GAV_escaped
-      fi
-    fi
-done < ${RUNNER_TEMP}/affected_modules.txt
-
-declare -A project_list
-
-for affected_module in ${affected_modules_map[@]}; do
-  affected_folder=${maven_to_folder_map[$affected_module]}
-  affected_folder_unescaped=$(unescape "$affected_folder")
-  project_list["$affected_folder_unescaped"]=$affected_folder_unescaped
-done
-
-echo "project_list=$(echo ${project_list[@]} | sed 's|/./||g' | tr ' ' ',' )"
-echo "project_list=$(echo ${project_list[@]} | sed 's|/./||g' | tr ' ' ',' )" >> $GITHUB_OUTPUT
+list_affected_projects

@@ -32,3 +32,14 @@ EOF
 )
   [ "$output" = "$expected" ]
 }
+
+@test "create_project_list will return maven project-list to build all modules affected by changed files" {
+  run bash "$BATS_TEST_DIRNAME/../create_project_list.sh" shared/shared-a/dummy.java
+  [ "$status" -eq 0 ]
+  expected=$(cat << EOF
+services/service-a,shared/shared-a,
+EOF
+)
+  [ "$output" = "$expected" ]
+}
+
