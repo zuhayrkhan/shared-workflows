@@ -96,6 +96,10 @@ list_affected_projects(){
 
 }
 
-generate_and_handle_dependency_map
-determine_and_handle_changed_files "$@"
-list_affected_projects
+create_project_list(){
+
+    generate_and_handle_dependency_map
+    determine_and_handle_changed_files "$@"
+    list_affected_projects
+
+}
