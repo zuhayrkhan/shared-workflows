@@ -62,8 +62,7 @@ process_affected_module(){
     affected_module_escaped=$(escape "$affected_module" )
     local affected_module_GAV_escaped=${folder_to_maven_map[$affected_module_escaped]}
     affected_module_GAV_escaped="${affected_module_GAV_escaped% }"
-    # shellcheck disable=SC2102
-    if [[ -v dependency_map[$affected_module_GAV_escaped] && ${dependency_map[$affected_module_GAV_escaped]} ]]; then
+    if [[ -v dependency_map["$affected_module_GAV_escaped"] && ${dependency_map[$affected_module_GAV_escaped]} ]]; then
         for dependent in ${dependency_map[$affected_module_GAV_escaped]}; do
             dependent_escaped=$(escape "$dependent")
             affected_modules_map["$dependent_escaped"]=$dependent_escaped
