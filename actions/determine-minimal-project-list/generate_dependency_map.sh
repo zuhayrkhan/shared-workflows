@@ -13,6 +13,8 @@ generate_dependency_map() {
   # List all modules (assuming each subfolder with a pom.xml is a module)
   for module in $(find . -name "pom.xml" -exec dirname {} \;); do
 
+    echo "processing module=$module"
+
     cd $module
 
     # Use grep to find SNAPSHOT dependencies
