@@ -20,6 +20,4 @@ jobs:
 
       - name: Run BATS tests of determine-minimal-project-list
         run: |
-          pwd
-          ls -latr
-          actions/determine-minimal-project-list/tests/test_script.bats
+          ./actions/determine-minimal-project-list/tests/test_script.bats
