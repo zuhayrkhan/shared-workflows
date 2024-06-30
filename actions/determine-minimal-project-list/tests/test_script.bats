@@ -16,7 +16,7 @@ fail() {
 
 setup() {
   export RUNNER_TEMP=.
-  cd example_monorepo || return
+  cd $BATS_TEST_DIRNAME/example_monorepo || return
 }
 
 @test "affected_modules will include entries for all pom.xml files" {
