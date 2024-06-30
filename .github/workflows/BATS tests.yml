@@ -25,4 +25,5 @@ jobs:
 
       - name: Run BATS tests of determine-minimal-project-list
         run: |
-          ./actions/determine-minimal-project-list/tests/test_script.bats
+          cd actions/determine-minimal-project-list/tests
+          ./test_script.bats
