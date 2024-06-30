@@ -11,7 +11,7 @@ generate_dependency_map() {
   declare -A maven_to_folder_map
 
   # List all modules (assuming each subfolder with a pom.xml is a module)
-  for module in $(find . -name "pom.xml" -exec dirname {} \; | sort); do
+  for module in $(find . -name "pom.xml" -exec dirname {} \; | sort -r); do
 
     echo "processing module=$module"
 
