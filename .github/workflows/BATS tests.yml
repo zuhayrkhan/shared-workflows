@@ -1,0 +1,43 @@
+# This workflow will run tests within the shared-workflows
+
+name: BATS tests of actions/workflows
+
+on:
+  push:
+    branches-ignore: [ ]
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Setup BATS
+        uses: mig4/setup-bats@v1
+        with:
+          bats-version: 1.11.0
+
+      - name: Install specific version of Maven
+        run: |
+          wget https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz -P /tmp
+          sudo tar xf /tmp/apache-maven-*.tar.gz -C /opt
+          sudo ln -s /opt/apache-maven-3.9.6 /opt/maven
+          echo "/opt/maven/bin" >> $GITHUB_PATH
+
+      - name: Ensure correct version of Maven
+        run: mvn -v
+
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Download all necessary dependencies and plugins
+        run: mvn dependency:go-offline -f actions/determine-minimal-project-list/tests/example_monorepo/pom.xml
+
+      - name: Run BATS tests of determine-minimal-project-list
+        run: |
+          which bash
+          cd actions/determine-minimal-project-list/tests
+          /usr/bin/env bats test_script.bats
