@@ -19,6 +19,9 @@ generate_dependency_map() {
 
     # Use grep to find SNAPSHOT dependencies
     while IFS= read -r line; do
+
+      echo "line=$line"
+
       if [[ $line =~ digraph[[:space:]]+\"([^:]+):([^:]+):jar:([^:]+)\" ]]; then
         current_module_groupId=$(trim_for_GAV "${BASH_REMATCH[1]}")
         current_module_artifactId=$(trim_for_GAV "${BASH_REMATCH[2]}")
