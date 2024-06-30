@@ -13,7 +13,7 @@ generate_dependency_map() {
   # List all modules (assuming each subfolder with a pom.xml is a module)
   for module in $(find . -name "pom.xml" -exec dirname {} \; | sort -r); do
 
-    echo "processing module=$module"
+#    echo "processing module=$module"
 
     cd $module
 
@@ -27,7 +27,7 @@ generate_dependency_map() {
         current_module_version=$(trim_for_GAV "${BASH_REMATCH[3]}")
         current_module_GAV="$current_module_groupId:$current_module_artifactId:$current_module_version"
 
-        echo "current_module_GAV=$current_module_GAV"
+#        echo "current_module_GAV=$current_module_GAV"
 
         if [[ "$module" =~ .*$current_module_artifactId$ ]]; then
           maven_to_folder_map[$current_module_GAV]="$module"  # Append maven to folder mapping
