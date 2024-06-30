@@ -1,4 +1,4 @@
-#!/usr/local/bin/bash
+#!/usr/bin/env bash
 
 #declare -A assoc_array
 #assoc_array["known"]+="value_for_known "
