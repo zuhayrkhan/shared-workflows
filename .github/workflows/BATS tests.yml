@@ -1,0 +1,19 @@
+# This workflow will run tests within the shared-workflows
+
+name: BATS tests of actions/workflows
+
+on:
+  push:
+    branches-ignore: [ ]
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Run BATS tests of determine-minimal-project-list
+        run: |
+          actions/determine-minimal-project-list/tests/test_script.bats
