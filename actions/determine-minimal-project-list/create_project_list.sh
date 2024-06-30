@@ -46,42 +46,7 @@ generate_and_handle_dependency_map() {
         maven_to_folder_map["$dependency_mavenGAV_escaped"]="$dependency_folder_escaped "
         folder_to_maven_map["$dependency_folder_escaped"]="$dependency_mavenGAV_escaped "
 
-        echo "dependency_mavenGAV=$(unescape $dependency_mavenGAV_escaped)"
-        echo "dependent_mavenGAV=$(unescape $dependent_mavenGAV_escaped)"
-        echo "dependent_mavenGAV_escaped=$dependency_mavenGAV_escaped"
-
-        key="nothing"
-        if [[ -v dependency_map["$key"] ]]; then
-          echo "(1a)dependency_map[nothing]=${dependency_map["$key"]}"
-        fi
-
-        if [[ -v dependency_map["$key"] && ${dependency_map["$key"]} ]]; then
-          echo "(2a)dependency_map[nothing]=${dependency_map["$key"]}"
-        fi
-
         dependency_map["$dependency_mavenGAV_escaped"]+="$dependent_mavenGAV_escaped "
-
-        echo "dependency_map[$(unescape $dependent_mavenGAV_escaped)]=${dependency_map[$dependent_mavenGAV_escaped]}"
-
-        if [[ -v dependency_map["$dependent_mavenGAV_escaped"] ]]; then
-          echo "(0b)dependency_map[$dependent_mavenGAV_escaped]=${dependency_map["$dependent_mavenGAV_escaped"]}"
-        fi
-
-        key="nothing"
-        if [[ -v dependency_map["$key"] ]]; then
-          echo "(1b)dependency_map[nothing]=${dependency_map["$key"]}"
-        fi
-
-        if [[ -v dependency_map["$key"] && ${dependency_map["$key"]} ]]; then
-          echo "(2b)dependency_map[nothing]=${dependency_map["$key"]}"
-        fi
-
-        for key in "${!dependency_map[@]}"; do
-            echo "Key: $key"
-            echo "Value: ${dependency_map["$key"]}"
-        done
-
-        declare -p dependency_map
 
     done < <(generate_dependency_map)
 
@@ -98,20 +63,12 @@ process_affected_module(){
     local affected_module_GAV_escaped=${folder_to_maven_map[$affected_module_escaped]}
     affected_module_GAV_escaped="${affected_module_GAV_escaped% }"
 
-    echo "affected_module_GAV=$(unescape $affected_module_GAV_escaped)"
-
     if [[ -v dependency_map["$affected_module_GAV_escaped"] && ${dependency_map[$affected_module_GAV_escaped]} ]]; then
-
-        echo "found entries in dependency_map - ${dependency_map[$affected_module_GAV_escaped]}"
-
         for dependent in ${dependency_map[$affected_module_GAV_escaped]}; do
             dependent_escaped=$(escape "$dependent")
             affected_modules_map["$dependent_escaped"]=$dependent_escaped
         done
     else
-
-        echo "didn't find entries in dependency_map, adding $(unescape $affected_module_GAV_escaped)"
-
         if [[ -n "$affected_module_GAV_escaped" ]]; then
             affected_modules_map["$affected_module_GAV_escaped"]=$affected_module_GAV_escaped
         fi

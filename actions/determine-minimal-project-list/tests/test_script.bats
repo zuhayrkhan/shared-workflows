@@ -59,9 +59,20 @@ EOF
 }
 
 
-@test "create_project_list will return maven project-list to build all modules affected by changed files" {
+@test "create_project_list will return maven project-list to build all modules affected by changed files in shared-a" {
   source "$BATS_TEST_DIRNAME/../create_project_list.sh"
   run create_project_list shared/shared-a/dummy.java
+  [ "$status" -eq 0 ]
+  expected=$(cat << EOF
+project_list=./services/service-a/
+EOF
+)
+  [[ "$output" = "$expected" ]] || fail "$(printf "The output doesn't match the expected value\noutput:\n%s\nexpect:\n%s\n" "$output" "$expected")"
+}
+
+@test "create_project_list will return maven project-list to build all modules affected by changed files in shared-c" {
+  source "$BATS_TEST_DIRNAME/../create_project_list.sh"
+  run create_project_list shared/shared-c/dummy.java
   [ "$status" -eq 0 ]
   expected=$(cat << EOF
 project_list=./services/service-b/,./services/service-a/
