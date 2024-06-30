@@ -2,9 +2,6 @@
 
 generate_dependency_map() {
 
-  echo "pwd:`pwd`"
-  echo "ls -latr:`ls -latr`"
-
   # get directory of current script
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 

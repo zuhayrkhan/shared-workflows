@@ -26,4 +26,4 @@ jobs:
       - name: Run BATS tests of determine-minimal-project-list
         run: |
           cd actions/determine-minimal-project-list/tests
-          ./test_script.bats
+          /usr/bin/env bats actions/determine-minimal-project-list/tests/test_script.bats
