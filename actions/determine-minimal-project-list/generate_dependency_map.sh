@@ -13,14 +13,10 @@ generate_dependency_map() {
   # List all modules (assuming each subfolder with a pom.xml is a module)
   for module in $(find . -name "pom.xml" -exec dirname {} \;); do
 
-    echo "Processing dir: $module"
-
     cd $module
 
     # Use grep to find SNAPSHOT dependencies
     while IFS= read -r line; do
-
-      echo "line=$line"
 
       if [[ $line =~ digraph[[:space:]]+\"([^:]+):([^:]+):jar:([^:]+)\" ]]; then
         current_module_groupId=$(trim_for_GAV "${BASH_REMATCH[1]}")
