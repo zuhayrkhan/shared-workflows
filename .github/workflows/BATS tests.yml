@@ -29,6 +29,9 @@ jobs:
       - name: Ensure correct version of Maven
         run: mvn -v
 
+      - name: Download all necessary dependencies and plugins
+        run: mvn dependency:go-offline
+
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
