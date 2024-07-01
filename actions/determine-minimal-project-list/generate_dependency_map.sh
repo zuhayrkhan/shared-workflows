@@ -10,14 +10,10 @@ process_module() {
 
   seen_folders[$module]=1
 
-  echo "processing module=$module"
-
   cd "$module" || exit
 
   # Use grep to find SNAPSHOT dependencies
   while IFS= read -r line; do
-
-    echo "line=$line"
 
     if [[ $line =~ from[[:space:]](.+)/pom.xml ]]; then
 
@@ -25,7 +21,7 @@ process_module() {
 
     elif [[ $line =~ digraph[[:space:]]+\"([^:]+):([^:]+):pom:([^:]+)\" ]]; then
 
-        seen_folders[$referenced_pom]=1
+        seen_folders[$referenced_pom]=1 # We don't process intermediate POM files, but mark them as seen
 
     elif [[ $line =~ digraph[[:space:]]+\"([^:]+):([^:]+):jar:([^:]+)\" ]]; then
 
