@@ -39,6 +39,7 @@ com.zuhayrkhan.example.services:service-a:1.0.0-SNAPSHOT(./services/service-a/)|
 com.zuhayrkhan.example.services:service-a:1.0.0-SNAPSHOT(./services/service-a/)|com.zuhayrkhan.example.shared:shared-c:1.0.0-SNAPSHOT(./shared/shared-c/)
 com.zuhayrkhan.example.services:service-b:1.0.0-SNAPSHOT(./services/service-b/)|com.zuhayrkhan.example.shared:shared-b:1.0.0-SNAPSHOT(./shared/shared-b/)
 com.zuhayrkhan.example.services:service-b:1.0.0-SNAPSHOT(./services/service-b/)|com.zuhayrkhan.example.shared:shared-c:1.0.0-SNAPSHOT(./shared/shared-c/)
+com.zuhayrkhan.example.disconnected_service:disconnected-service-a:1.0.0-SNAPSHOT(./disconnected/disconnected-service-a/)|com.zuhayrkhan.example.disconnected_shared:disconnected-shared-a:1.0.0-SNAPSHOT(./disconnected/disconnected-shared-a/)
 EOF
 )
   [[ "$output" = "$expected" ]] || fail "$(printf "The output doesn't match the expected value\noutput:\n%s\nexpect:\n%s\n" "$output" "$expected")"
