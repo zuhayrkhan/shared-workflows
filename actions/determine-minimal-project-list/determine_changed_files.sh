@@ -5,10 +5,10 @@ determine_changed_files() {
   IFS=$'\n'
   module_paths=($(find . -name "pom.xml" | sed 's|/[^/]*$||' | sed 's| $||' | awk '{ printf "%d %s/\n", length, $0 }' | sort -nr | cut -d" " -f2-))
 
-  changed_files=$1
-
   IFS=' '
-  for file in $changed_files; do
+  changed_files=("$@")
+
+  for file in "${changed_files[@]}"; do
       prefixed_file=./$file
       for module_path in "${module_paths[@]}"; do
           # Check if the file path starts with the module path

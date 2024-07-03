@@ -21,10 +21,11 @@ setup() {
 
 @test "affected_modules will include entries for all pom.xml files" {
   source "$BATS_TEST_DIRNAME/../determine_changed_files.sh"
-  run determine_changed_files shared/shared-a/dummy.java
+  run determine_changed_files shared/shared-a/dummy.java shared/shared-c/dummy.java
   [ "$status" -eq 0 ]
   expected=$(cat << EOF
 ./shared/shared-a/
+./shared/shared-c/
 EOF
 )
   [[ "$output" = "$expected" ]] || fail "$(printf "The output doesn't match the expected value\noutput:\n%s\nexpect:\n%s\n" "$output" "$expected")"
@@ -71,6 +72,17 @@ EOF
 @test "create_project_list will return maven project-list to build all modules affected by changed files in shared-c" {
   source "$BATS_TEST_DIRNAME/../create_project_list.sh"
   run create_project_list shared/shared-c/dummy.java
+  [ "$status" -eq 0 ]
+  expected=$(cat << EOF
+project_list=./services/service-b/,./services/service-a/
+EOF
+)
+  [[ "$output" = "$expected" ]] || fail "$(printf "The output doesn't match the expected value\noutput:\n%s\nexpect:\n%s\n" "$output" "$expected")"
+}
+
+@test "create_project_list will return maven project-list to build all modules affected by changed files in shared-a and shared-c" {
+  source "$BATS_TEST_DIRNAME/../create_project_list.sh"
+  run create_project_list shared/shared-a/dummy.java shared/shared-c/dummy.java
   [ "$status" -eq 0 ]
   expected=$(cat << EOF
 project_list=./services/service-b/,./services/service-a/
