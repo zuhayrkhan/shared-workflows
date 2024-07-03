@@ -46,12 +46,12 @@ EOF
   [[ "$output" = "$expected" ]] || fail "$(printf "The output doesn't match the expected value\noutput:\n%s\nexpect:\n%s\n" "$output" "$expected")"
 }
 
-@test "create_project_list.process_module_and_dir will split and escape MavenGAV and folder" {
+@test "create_project_list.process_module_and_dir will split MavenGAV and folder" {
   source "$BATS_TEST_DIRNAME/../create_project_list.sh"
   run process_module_and_dir "com.zuhayrkhan.example.services:service-a:1.0.0-SNAPSHOT(./services/service-a/)"
   [ "$status" -eq 0 ]
   expected=$(cat << EOF
-com_DOT_zuhayrkhan_DOT_example_DOT_services_COLON_service_MINUS_a_COLON_1_DOT_0_DOT_0_MINUS_SNAPSHOT _DOT__SEP_services_SEP_service_MINUS_a_SEP_
+com.zuhayrkhan.example.services:service-a:1.0.0-SNAPSHOT ./services/service-a/
 EOF
 )
   [[ "$output" = "$expected" ]] || fail "$(printf "The output doesn't match the expected value\noutput:\n%s\nexpect:\n%s\n" "$output" "$expected")"

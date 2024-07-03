@@ -21,12 +21,10 @@ process_module_and_dir(){
     IFS="(" read -r mavenGAV dir <<< "$mavenGAV_and_dir"
     folder=${dir%)*}
 
-    dependency_mavenGAV_escaped=$(escape "$mavenGAV" )
-    dependency_folder_escaped=$(escape "$folder" )
-    maven_to_folder_map["$dependency_mavenGAV_escaped"]="$dependency_folder_escaped "
-    folder_to_maven_map["$dependency_folder_escaped"]="$dependency_mavenGAV_escaped "
+    maven_to_folder_map["$mavenGAV"]="$folder "
+    folder_to_maven_map["$folder"]="$mavenGAV "
 
-    echo "$dependency_mavenGAV_escaped" "$dependency_folder_escaped"
+    echo "$mavenGAV" "$folder"
 
 }
 
@@ -36,17 +34,17 @@ generate_and_handle_dependency_map() {
 
         IFS="|" read -r dependent dependency <<< "$line"
 
-        read -r dependent_mavenGAV_escaped dependent_folder_escaped <<< "$(process_module_and_dir "$dependent")"
+        read -r dependent_mavenGAV dependent_folder <<< "$(process_module_and_dir "$dependent")"
 
-        maven_to_folder_map["$dependent_mavenGAV_escaped"]="$dependent_folder_escaped "
-        folder_to_maven_map["$dependent_folder_escaped"]="$dependent_mavenGAV_escaped "
+        maven_to_folder_map["$dependent_mavenGAV"]="$dependent_folder "
+        folder_to_maven_map["$dependent_folder"]="$dependent_mavenGAV "
 
-        read -r dependency_mavenGAV_escaped dependency_folder_escaped <<< "$(process_module_and_dir "$dependency")"
+        read -r dependency_mavenGAV dependency_folder <<< "$(process_module_and_dir "$dependency")"
 
-        maven_to_folder_map["$dependency_mavenGAV_escaped"]="$dependency_folder_escaped "
-        folder_to_maven_map["$dependency_folder_escaped"]="$dependency_mavenGAV_escaped "
+        maven_to_folder_map["$dependency_mavenGAV"]="$dependency_folder "
+        folder_to_maven_map["$dependency_folder"]="$dependency_mavenGAV "
 
-        dependency_map["$dependency_mavenGAV_escaped"]+="$dependent_mavenGAV_escaped "
+        dependency_map["$dependency_mavenGAV"]+="$dependent_mavenGAV "
 
     done < <(generate_dependency_map)
 
@@ -58,19 +56,16 @@ process_affected_module(){
 
     local affected_module
     affected_module="$1"
-    local affected_module_escaped
-    affected_module_escaped=$(escape "$affected_module" )
-    local affected_module_GAV_escaped=${folder_to_maven_map[$affected_module_escaped]}
-    affected_module_GAV_escaped="${affected_module_GAV_escaped% }"
+    local affected_module_GAV=${folder_to_maven_map[$affected_module]}
+    affected_module_GAV="${affected_module_GAV% }"
 
-    if [[ -v dependency_map["$affected_module_GAV_escaped"] && ${dependency_map[$affected_module_GAV_escaped]} ]]; then
-        for dependent in ${dependency_map[$affected_module_GAV_escaped]}; do
-            dependent_escaped=$(escape "$dependent")
-            affected_modules_map["$dependent_escaped"]=$dependent_escaped
+    if [[ -v dependency_map["$affected_module_GAV"] && ${dependency_map[$affected_module_GAV]} ]]; then
+        for dependent in ${dependency_map[$affected_module_GAV]}; do
+            affected_modules_map["$dependent"]=$dependent
         done
     else
-        if [[ -n "$affected_module_GAV_escaped" ]]; then
-            affected_modules_map["$affected_module_GAV_escaped"]=$affected_module_GAV_escaped
+        if [[ -n "$affected_module_GAV" ]]; then
+            affected_modules_map["$affected_module_GAV"]=$affected_module_GAV
         fi
     fi
 
@@ -88,9 +83,9 @@ list_affected_projects(){
 
     for affected_module in "${affected_modules_map[@]}"; do
         local affected_folder=${maven_to_folder_map[$affected_module]}
-        local affected_folder_unescaped
-        affected_folder_unescaped=$(trim "$(unescape "$affected_folder")")
-        project_list["$affected_folder_unescaped"]=$affected_folder_unescaped
+        local affected_folder_trimmed
+        affected_folder_trimmed=$(trim "$affected_folder")
+        project_list["$affected_folder_trimmed"]=$affected_folder_trimmed
     done
 
     echo "project_list=$(echo "${project_list[@]}" | sed 's|/./||g' | tr ' ' ',' )" | tee -a $GITHUB_OUTPUT
