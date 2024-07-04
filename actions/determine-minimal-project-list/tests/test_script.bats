@@ -64,7 +64,7 @@ EOF
   run create_project_list shared/shared-a/dummy.java
   [ "$status" -eq 0 ]
   expected=$(cat << EOF
-project_list=./services/service-a
+project_list=./services/service-a,./shared/shared-a
 EOF
 )
   [[ "$output" = "$expected" ]] || fail "$(printf "The output doesn't match the expected value\noutput:\n%s\nexpect:\n%s\n" "$output" "$expected")"
@@ -75,7 +75,7 @@ EOF
   run create_project_list shared/shared-c/dummy.java
   [ "$status" -eq 0 ]
   expected=$(cat << EOF
-project_list=./services/service-b,./services/service-a
+project_list=./services/service-b,./services/service-a,./shared/shared-c
 EOF
 )
   [[ "$output" = "$expected" ]] || fail "$(printf "The output doesn't match the expected value\noutput:\n%s\nexpect:\n%s\n" "$output" "$expected")"
@@ -86,7 +86,7 @@ EOF
   run create_project_list shared/shared-a/dummy.java shared/shared-c/dummy.java
   [ "$status" -eq 0 ]
   expected=$(cat << EOF
-project_list=./services/service-b,./services/service-a
+project_list=./services/service-b,./services/service-a,./shared/shared-c,./shared/shared-a
 EOF
 )
   [[ "$output" = "$expected" ]] || fail "$(printf "The output doesn't match the expected value\noutput:\n%s\nexpect:\n%s\n" "$output" "$expected")"
@@ -97,7 +97,7 @@ EOF
   run create_project_list shared/shared-d/dummy.java
   [ "$status" -eq 0 ]
   expected=$(cat << EOF
-project_list=./services/service-b,./services/service-a
+project_list=./services/service-b,./services/service-a,./shared/shared-d,./shared/shared-c
 EOF
 )
   [[ "$output" = "$expected" ]] || fail "$(printf "The output doesn't match the expected value\noutput:\n%s\nexpect:\n%s\n" "$output" "$expected")"
