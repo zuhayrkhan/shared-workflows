@@ -26,14 +26,18 @@ process_module_and_dir() {
 # generate_and_handle_dependency_map(): Generates a map of dependencies between different modules
 generate_and_handle_dependency_map() {
     while IFS= read -r line; do
-        IFS="|" read -r dependent dependency <<< "$line"
-        read -r dependent_mavenGAV dependent_folder <<< "$(process_module_and_dir "$dependent")"
-        MAVEN_TO_FOLDER_MAP["$dependent_mavenGAV"]="$dependent_folder "
-        FOLDER_TO_MAVEN_MAP["$dependent_folder"]="$dependent_mavenGAV "
-        read -r dependency_mavenGAV dependency_folder <<< "$(process_module_and_dir "$dependency")"
-        MAVEN_TO_FOLDER_MAP["$dependency_mavenGAV"]="$dependency_folder "
-        FOLDER_TO_MAVEN_MAP["$dependency_folder"]="$dependency_mavenGAV "
-        DEPENDENCY_MAP["$dependency_mavenGAV"]+="$dependent_mavenGAV "
+      IFS="|" read -r dependent dependency <<< "$line"
+
+      read -r dependent_mavenGAV dependent_folder <<< "$(process_module_and_dir "$dependent")"
+      MAVEN_TO_FOLDER_MAP["$dependent_mavenGAV"]="$dependent_folder "
+      FOLDER_TO_MAVEN_MAP["$dependent_folder"]="$dependent_mavenGAV "
+
+      read -r dependency_mavenGAV dependency_folder <<< "$(process_module_and_dir "$dependency")"
+      MAVEN_TO_FOLDER_MAP["$dependency_mavenGAV"]="$dependency_folder "
+      FOLDER_TO_MAVEN_MAP["$dependency_folder"]="$dependency_mavenGAV "
+
+      DEPENDENCY_MAP["$dependency_mavenGAV"]+="$dependent_mavenGAV "
+
     done < <(generate_dependency_map)
 }
 
@@ -42,9 +46,10 @@ source "$SCRIPT_DIR/determine_changed_files.sh"
 # process_affected_module(): Process a given affected module by adding it and its dependents to the AFFECTED_MODULES_MAP
 process_affected_module() {
     local affected_module="$1"
-    local affected_module_GAV=${FOLDER_TO_MAVEN_MAP[$affected_module]}
+    local affected_module_GAV=${FOLDER_TO_MAVEN_MAP["$affected_module"]}
     affected_module_GAV="${affected_module_GAV% }"
-    if [[ -v DEPENDENCY_MAP["$affected_module_GAV"] && ${DEPENDENCY_MAP[$affected_module_GAV]} ]]; then
+
+    if [[ -v DEPENDENCY_MAP["$affected_module_GAV"] ]]; then
         for dependent in ${DEPENDENCY_MAP[$affected_module_GAV]}; do
             AFFECTED_MODULES_MAP["$dependent"]=$dependent
         done

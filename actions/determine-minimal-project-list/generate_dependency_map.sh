@@ -2,6 +2,7 @@
 
 # Global associative array to keep track of processed directories
 declare -A SEEN_FOLDERS
+declare -A DEPENDENCY_MAP
 
 # process_module(): Processes a given module to generate a mapping between Maven coordinates and directories
 process_module() {
@@ -50,7 +51,7 @@ process_module() {
                 dependency_module_folder=${maven_to_folder_map[$dependency_module]}
 
                 if [[ ! -z  "${dependent_module_folder}" && ! -z "${dependency_module_folder}" ]]; then
-                    echo "$dependent_module($dependent_module_folder/)|$dependency_module($dependency_module_folder/)"
+                  DEPENDENCY_MAP["$dependent_module($dependent_module_folder)|$dependency_module($dependency_module_folder)"]="$dependent_module($dependent_module_folder)|$dependency_module($dependency_module_folder)"
                 fi
             fi
         fi
@@ -78,4 +79,9 @@ generate_dependency_map() {
         fi
         cd - > /dev/null || exit
     done
+
+    for MODULE in $(echo "${!DEPENDENCY_MAP[@]}" | tr ' ' '\n' | sort); do
+        echo "${DEPENDENCY_MAP[$MODULE]}"
+    done
+
 }

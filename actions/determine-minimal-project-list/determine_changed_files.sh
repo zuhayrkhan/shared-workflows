@@ -31,7 +31,8 @@ determine_changed_files() {
                 match_regex="^${module_path//\//\\/}"
                 # If the prefixed_file starts with module_path
                 if [[ "$prefixed_file" =~ $match_regex ]]; then
-                    echo "$module_path"
+                    # Strip the trailing / from the module_path
+                    echo "${module_path%/}"
                     break # Exit the loop after the first match to avoid matching less specific paths
                 fi
             fi
