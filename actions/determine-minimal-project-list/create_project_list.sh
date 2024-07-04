@@ -46,16 +46,26 @@ source "$SCRIPT_DIR/determine_changed_files.sh"
 # process_affected_module(): Process a given affected module by adding it and its dependents to the AFFECTED_MODULES_MAP
 process_affected_module() {
     local affected_module="$1"
+
+    echo "affected_module=$affected_module"
+
     local affected_module_GAV=${FOLDER_TO_MAVEN_MAP["$affected_module"]}
     affected_module_GAV="${affected_module_GAV% }"
+
+    echo "affected_module_GAV=$affected_module_GAV"
 
     if [[ -v DEPENDENCY_MAP["$affected_module_GAV"] ]]; then
         for dependent in ${DEPENDENCY_MAP[$affected_module_GAV]}; do
             AFFECTED_MODULES_MAP["$dependent"]=$dependent
+
+            local dependent_folder=${MAVEN_TO_FOLDER_MAP["$dependent"]}
+            echo "recursing for dependent_folder=$dependent_folder"
+
+            process_affected_module $dependent_folder
         done
-    elif [[ -n "$affected_module_GAV" ]]; then
-        AFFECTED_MODULES_MAP["$affected_module_GAV"]=$affected_module_GAV
     fi
+    # Always add the given module as one to be built
+    AFFECTED_MODULES_MAP["$affected_module_GAV"]=$affected_module_GAV
 }
 
 # determine_and_handle_changed_files(): Identifies the changed files and handle the affected modules
