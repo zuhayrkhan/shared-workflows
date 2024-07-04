@@ -24,8 +24,8 @@ setup() {
   run determine_changed_files shared/shared-a/dummy.java shared/shared-c/dummy.java
   [ "$status" -eq 0 ]
   expected=$(cat << EOF
-./shared/shared-a/
-./shared/shared-c/
+./shared/shared-a
+./shared/shared-c
 EOF
 )
   [[ "$output" = "$expected" ]] || fail "$(printf "The output doesn't match the expected value\noutput:\n%s\nexpect:\n%s\n" "$output" "$expected")"
@@ -36,22 +36,23 @@ EOF
   run generate_dependency_map
   [ "$status" -eq 0 ]
   expected=$(cat << EOF
-com.zuhayrkhan.example.services:service-a:1.0.0-SNAPSHOT(./services/service-a/)|com.zuhayrkhan.example.shared:shared-a:1.0.0-SNAPSHOT(./shared/shared-a/)
-com.zuhayrkhan.example.services:service-a:1.0.0-SNAPSHOT(./services/service-a/)|com.zuhayrkhan.example.shared:shared-c:1.0.0-SNAPSHOT(./shared/shared-c/)
-com.zuhayrkhan.example.services:service-b:1.0.0-SNAPSHOT(./services/service-b/)|com.zuhayrkhan.example.shared:shared-b:1.0.0-SNAPSHOT(./shared/shared-b/)
-com.zuhayrkhan.example.services:service-b:1.0.0-SNAPSHOT(./services/service-b/)|com.zuhayrkhan.example.shared:shared-c:1.0.0-SNAPSHOT(./shared/shared-c/)
-com.zuhayrkhan.example.disconnected_service:disconnected-service-a:1.0.0-SNAPSHOT(./disconnected/disconnected-service-a/)|com.zuhayrkhan.example.disconnected_shared:disconnected-shared-a:1.0.0-SNAPSHOT(./disconnected/disconnected-shared-a/)
+com.zuhayrkhan.example.disconnected_service:disconnected-service-a:1.0.0-SNAPSHOT(./disconnected/disconnected-service-a)|com.zuhayrkhan.example.disconnected_shared:disconnected-shared-a:1.0.0-SNAPSHOT(./disconnected/disconnected-shared-a)
+com.zuhayrkhan.example.services:service-a:1.0.0-SNAPSHOT(./services/service-a)|com.zuhayrkhan.example.shared:shared-a:1.0.0-SNAPSHOT(./shared/shared-a)
+com.zuhayrkhan.example.services:service-a:1.0.0-SNAPSHOT(./services/service-a)|com.zuhayrkhan.example.shared:shared-c:1.0.0-SNAPSHOT(./shared/shared-c)
+com.zuhayrkhan.example.services:service-b:1.0.0-SNAPSHOT(./services/service-b)|com.zuhayrkhan.example.shared:shared-b:1.0.0-SNAPSHOT(./shared/shared-b)
+com.zuhayrkhan.example.services:service-b:1.0.0-SNAPSHOT(./services/service-b)|com.zuhayrkhan.example.shared:shared-c:1.0.0-SNAPSHOT(./shared/shared-c)
+com.zuhayrkhan.example.shared:shared-c:1.0.0-SNAPSHOT(./shared/shared-c)|com.zuhayrkhan.example.shared:shared-d:1.0.0-SNAPSHOT(./shared/shared-d)
 EOF
 )
   [[ "$output" = "$expected" ]] || fail "$(printf "The output doesn't match the expected value\noutput:\n%s\nexpect:\n%s\n" "$output" "$expected")"
 }
 
-@test "create_project_list.process_module_and_dir will split and escape MavenGAV and folder" {
+@test "create_project_list.process_module_and_dir will split MavenGAV and folder" {
   source "$BATS_TEST_DIRNAME/../create_project_list.sh"
-  run process_module_and_dir "com.zuhayrkhan.example.services:service-a:1.0.0-SNAPSHOT(./services/service-a/)"
+  run process_module_and_dir "com.zuhayrkhan.example.services:service-a:1.0.0-SNAPSHOT(./services/service-a)"
   [ "$status" -eq 0 ]
   expected=$(cat << EOF
-com_DOT_zuhayrkhan_DOT_example_DOT_services_COLON_service_MINUS_a_COLON_1_DOT_0_DOT_0_MINUS_SNAPSHOT _DOT__SEP_services_SEP_service_MINUS_a_SEP_
+com.zuhayrkhan.example.services:service-a:1.0.0-SNAPSHOT ./services/service-a
 EOF
 )
   [[ "$output" = "$expected" ]] || fail "$(printf "The output doesn't match the expected value\noutput:\n%s\nexpect:\n%s\n" "$output" "$expected")"
@@ -63,7 +64,7 @@ EOF
   run create_project_list shared/shared-a/dummy.java
   [ "$status" -eq 0 ]
   expected=$(cat << EOF
-project_list=./services/service-a/
+project_list=./services/service-a,./shared/shared-a
 EOF
 )
   [[ "$output" = "$expected" ]] || fail "$(printf "The output doesn't match the expected value\noutput:\n%s\nexpect:\n%s\n" "$output" "$expected")"
@@ -74,7 +75,7 @@ EOF
   run create_project_list shared/shared-c/dummy.java
   [ "$status" -eq 0 ]
   expected=$(cat << EOF
-project_list=./services/service-b/,./services/service-a/
+project_list=./services/service-b,./services/service-a,./shared/shared-c
 EOF
 )
   [[ "$output" = "$expected" ]] || fail "$(printf "The output doesn't match the expected value\noutput:\n%s\nexpect:\n%s\n" "$output" "$expected")"
@@ -85,7 +86,18 @@ EOF
   run create_project_list shared/shared-a/dummy.java shared/shared-c/dummy.java
   [ "$status" -eq 0 ]
   expected=$(cat << EOF
-project_list=./services/service-b/,./services/service-a/
+project_list=./services/service-b,./services/service-a,./shared/shared-c,./shared/shared-a
+EOF
+)
+  [[ "$output" = "$expected" ]] || fail "$(printf "The output doesn't match the expected value\noutput:\n%s\nexpect:\n%s\n" "$output" "$expected")"
+}
+
+@test "create_project_list will return maven project-list to build all modules affected by changed files in shared-d (transitive dependency)" {
+  source "$BATS_TEST_DIRNAME/../create_project_list.sh"
+  run create_project_list shared/shared-d/dummy.java
+  [ "$status" -eq 0 ]
+  expected=$(cat << EOF
+project_list=./services/service-b,./services/service-a,./shared/shared-d,./shared/shared-c
 EOF
 )
   [[ "$output" = "$expected" ]] || fail "$(printf "The output doesn't match the expected value\noutput:\n%s\nexpect:\n%s\n" "$output" "$expected")"
