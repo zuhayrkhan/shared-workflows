@@ -60,8 +60,10 @@ process_affected_module() {
         done
 
     fi
-    # Always add the given module as one to be built
-    AFFECTED_MODULES_MAP["$affected_module_GAV"]=$affected_module_GAV
+    # Add the given module as one to be built - if presetn
+    if [[ -n "${affected_module_GAV}" ]]; then
+      AFFECTED_MODULES_MAP["$affected_module_GAV"]=$affected_module_GAV
+    fi
 }
 
 # determine_and_handle_changed_files(): Identifies the changed files and handle the affected modules
@@ -78,8 +80,10 @@ list_affected_projects() {
         local affected_folder_trimmed=$(trim "$affected_folder")
         PROJECT_LIST["$affected_folder_trimmed"]=$affected_folder_trimmed
     done
+    local project_list
+    project_list=$(echo "${PROJECT_LIST[@]}" | sed 's|/./||g' | tr ' ' '\n' | sort -r | tr '\n' ',' )
     # Output the affected projects list
-    echo "project_list=$(echo "${PROJECT_LIST[@]}" | sed 's|/./||g' | tr ' ' ',' )" | tee -a $GITHUB_OUTPUT
+    echo "project_list=${project_list%,}" | tee -a $GITHUB_OUTPUT
 }
 
 # create_project_list(): The main function that ties all the other functions together
