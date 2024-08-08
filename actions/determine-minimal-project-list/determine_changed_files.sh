@@ -18,7 +18,7 @@ determine_changed_files() {
     changed_files=("$@")
 
     # Iterate over changed files
-    for file in "${changed_files[@]}"; do
+    for file in $(echo "${changed_files[@]}" | tr ' ' '\n' | sort | tr '\n' ' ' ); do
         # Prefix the file with "./" to make it compatible with the module_paths
         prefixed_file=./$file
 
