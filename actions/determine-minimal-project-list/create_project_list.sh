@@ -77,11 +77,12 @@ determine_and_handle_changed_files() {
 list_affected_projects() {
     for affected_module in "${AFFECTED_MODULES_MAP[@]}"; do
         local affected_folder=${MAVEN_TO_FOLDER_MAP[$affected_module]}
-        local affected_folder_trimmed=$(trim "$affected_folder")
+        local affected_folder_trimmed
+        affected_folder_trimmed=$(strip_relative_path "$(trim "$affected_folder")")
         PROJECT_LIST["$affected_folder_trimmed"]=$affected_folder_trimmed
     done
     local project_list
-    project_list=$(echo "${PROJECT_LIST[@]}" | sed 's|/./||g' | tr ' ' '\n' | sort -r | tr '\n' ',' )
+    project_list=$(echo "${PROJECT_LIST[@]}" | sed 's|/\./||g' | tr ' ' '\n' | sort -r | tr '\n' ',' )
     # Output the affected projects list
     echo "project_list=${project_list%,}" | tee -a $GITHUB_OUTPUT
 }
