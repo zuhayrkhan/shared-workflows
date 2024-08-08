@@ -19,6 +19,17 @@ setup() {
   cd $BATS_TEST_DIRNAME/example_monorepo || return
 }
 
+@test "create_project_list will return an empty maven project-list to build all services if no changed files" {
+  source "$BATS_TEST_DIRNAME/../create_project_list.sh"
+  run create_project_list
+  [ "$status" -eq 0 ]
+  expected=$(cat << EOF
+project_list=
+EOF
+)
+  [[ "$output" = "$expected" ]] || fail "$(printf "The output doesn't match the expected value\noutput:\n%s\nexpect:\n%s\n" "$output" "$expected")"
+}
+
 @test "affected_modules will include entries for all pom.xml files" {
   source "$BATS_TEST_DIRNAME/../determine_changed_files.sh"
   run determine_changed_files shared/shared-a/dummy.java shared/shared-c/dummy.java
@@ -64,7 +75,7 @@ EOF
   run create_project_list shared/shared-a/dummy.java
   [ "$status" -eq 0 ]
   expected=$(cat << EOF
-project_list=./shared/shared-a,./services/service-a
+project_list=shared/shared-a,services/service-a
 EOF
 )
   [[ "$output" = "$expected" ]] || fail "$(printf "The output doesn't match the expected value\noutput:\n%s\nexpect:\n%s\n" "$output" "$expected")"
@@ -75,7 +86,7 @@ EOF
   run create_project_list shared/shared-c/dummy.java
   [ "$status" -eq 0 ]
   expected=$(cat << EOF
-project_list=./shared/shared-c,./services/service-b,./services/service-a
+project_list=shared/shared-c,services/service-b,services/service-a
 EOF
 )
   [[ "$output" = "$expected" ]] || fail "$(printf "The output doesn't match the expected value\noutput:\n%s\nexpect:\n%s\n" "$output" "$expected")"
@@ -86,7 +97,7 @@ EOF
   run create_project_list shared/shared-a/dummy.java shared/shared-c/dummy.java
   [ "$status" -eq 0 ]
   expected=$(cat << EOF
-project_list=./shared/shared-c,./shared/shared-a,./services/service-b,./services/service-a
+project_list=shared/shared-c,shared/shared-a,services/service-b,services/service-a
 EOF
 )
   [[ "$output" = "$expected" ]] || fail "$(printf "The output doesn't match the expected value\noutput:\n%s\nexpect:\n%s\n" "$output" "$expected")"
@@ -97,7 +108,7 @@ EOF
   run create_project_list shared/shared-d/dummy.java
   [ "$status" -eq 0 ]
   expected=$(cat << EOF
-project_list=./shared/shared-d,./shared/shared-c,./services/service-b,./services/service-a
+project_list=shared/shared-d,shared/shared-c,services/service-b,services/service-a
 EOF
 )
   [[ "$output" = "$expected" ]] || fail "$(printf "The output doesn't match the expected value\noutput:\n%s\nexpect:\n%s\n" "$output" "$expected")"
